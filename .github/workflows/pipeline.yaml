@@ -1,0 +1,27 @@
+name: Python Check Style
+on:
+  push:
+    branches:
+      - origin
+
+jobs:
+  python-check-style:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Git clone repo
+        uses: actions/checkout@v2
+
+      - name: Set version maven
+        uses: actions/setup-maven@v2
+        with:
+          mvn-version: '3.9.6'
+
+      - name: Install dependencies maven
+        run: mvn clean package
+
+
+      - name: Java Check Style
+        run: |
+          wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-8.44/checkstyle-8.44-all.jar
+          java -jar checkstyle-8.44-all.jar config/checkstyle.xml src/
