@@ -17,8 +17,5 @@ jobs:
       - name: Maven Package
         run: mvn -B clean package -DskipTests
 
-      - name: Download Checkstyle
-        run: wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-10.15.0/checkstyle-10.15.0-all.jar
-
       - name: Run Checkstyle
-        run: java -jar checkstyle-10.15.0-all.jar
+        run: mvn checkstyle:checkstyle
