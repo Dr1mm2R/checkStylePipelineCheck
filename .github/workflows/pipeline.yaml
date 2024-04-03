@@ -2,7 +2,7 @@ name: Maven Check Style
 on:
   push:
     branches:
-      - origin
+      - main
 
 jobs:
   maven-check-style:
@@ -23,4 +23,4 @@ jobs:
       - name: Java Check Style
         run: |
           wget https://github.com/checkstyle/checkstyle/releases/download/checkstyle-8.44/checkstyle-8.44-all.jar
-          java -jar checkstyle-8.44-all.jar config/checkstyle.xml src/
+          java -jar checkstyle-8.44-all.jar config/Checkstyle.xml src/
