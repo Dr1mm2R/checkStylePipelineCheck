@@ -2,8 +2,10 @@ package com.example.apisearchpracticebase.Controllers;
 
 import com.example.apisearchpracticebase.Models.PracticeBase;
 import com.example.apisearchpracticebase.Models.Student;
+import com.example.apisearchpracticebase.Models.WorkApiLogs;
 import com.example.apisearchpracticebase.Repositories.PracticeBaseRepos;
 import com.example.apisearchpracticebase.Repositories.StudentRepos;
+import com.example.apisearchpracticebase.Repositories.WorkApiLogsRepos;
 import com.example.apisearchpracticebase.Services.ImageService;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.*;
@@ -35,6 +37,9 @@ public class ImageController {
     @Autowired
     ImageService imageService;
 
+    @Autowired
+    WorkApiLogsRepos workApiLogsRepos;
+
     private final Storage storage;
 
     public ImageController() throws IOException {
@@ -54,6 +59,12 @@ public class ImageController {
                                               @RequestParam("isPracticeBase") boolean isBase,
                                               @RequestParam("uploadingID") long id) {
         try {
+            WorkApiLogs workApiLogs = workApiLogsRepos.findById(1);
+            workApiLogs.setAllCountRequests(workApiLogs.getAllCountRequests()+1);
+
+            workApiLogs.setSuccessfulCountRequests(workApiLogs.getSuccessfulCountRequests()+1);
+            workApiLogsRepos.save(workApiLogs);
+
             String fileName = generateFilename(Objects.requireNonNull(file.getOriginalFilename()));
             String storagePath = isBase ? "practiceBaseImages/" : "profileImages/";
 
@@ -75,6 +86,8 @@ public class ImageController {
 
             return ResponseEntity.ok("Image uploaded successfully!");
         } catch (IOException e) {
+            workApiLogsRepos.findById(1).setSuccessfulCountRequests(workApiLogsRepos.findById(1).getSuccessfulCountRequests()-1);
+            workApiLogsRepos.findById(1).setErrorCountRequests(workApiLogsRepos.findById(1).getErrorCountRequests()+1);
             return ResponseEntity.status(500).body("Failed to upload image");
         }
     }
@@ -90,6 +103,13 @@ public class ImageController {
 
     @GetMapping("/get")
     public ResponseEntity<byte[]> getImage(@RequestParam("isPracticeBase") boolean isBase, @RequestParam("filename") String filename) {
+        WorkApiLogs workApiLogs = workApiLogsRepos.findById(1);
+        workApiLogs.setAllCountRequests(workApiLogs.getAllCountRequests()+1);
+
+
+        workApiLogs.setSuccessfulCountRequests(workApiLogs.getSuccessfulCountRequests()+1);
+        workApiLogsRepos.save(workApiLogs);
+
         String bucketName = "searchpracticebaseproject.appspot.com";
         String storagePath = isBase ? "practiceBaseImages/" : "profileImages/";
         String storageFileName = storagePath + filename;

@@ -1,4 +1,4 @@
-package com.example.apisearchpracticebase.Configuration;
+package com.example.apisearchpracticebase.Security;
 
 import com.example.apisearchpracticebase.Security.JWTConfigurer;
 import com.example.apisearchpracticebase.Security.JWTProvider;
@@ -25,10 +25,19 @@ public class SecurityConfig{
                 .authorizeRequests()
                 .requestMatchers("/server/**").permitAll()
                 .requestMatchers("/authentication/**").permitAll()
+                .requestMatchers("/firebase_files/**").permitAll()
+                .requestMatchers("/apiLogs/**").permitAll()
                 .requestMatchers("/student/**").hasRole("STUDENT")
+                .requestMatchers("/student/**").hasRole("PRACTICEMANAGER")
                 .requestMatchers("/images/**").hasRole("STUDENT")
+                .requestMatchers("/images/**").hasRole("PRACTICEMANAGER")
                 .requestMatchers("/requests/**").hasRole("STUDENT")
+                .requestMatchers("/requests/**").hasRole("PRACTICEMANAGER")
                 .requestMatchers("/visitLog/**").hasRole("STUDENT")
+                .requestMatchers("/visitLog/**").hasRole("PRACTICEMANAGER")
+                .requestMatchers("/practice_Manager/**").hasRole("PRACTICEMANAGER")
+                .requestMatchers("/practiceBase/**").hasRole("PRACTICEMANAGER")
+                .requestMatchers("/students-resume/**").hasRole("PRACTICEMANAGER")
                 .anyRequest().authenticated()
                 .and()
                 .apply(new JWTConfigurer(jwtProvider));

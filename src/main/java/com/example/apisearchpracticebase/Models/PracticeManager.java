@@ -26,14 +26,14 @@ public class PracticeManager {
     @Column(name = "Manager_Login", nullable = false, unique = true)
     private String managerLogin;
 
-    @Column(name = "Manager_Password", nullable = false)
-    private String managerPassword;
-
     @Column(name = "WorkExperience", nullable = false)
     private String workExperience;
 
     @Column(name = "WorkDirection", nullable = false)
     private String workDirection;
+
+    @Column(name = "role", nullable = false)
+    private String role;
 
     @ManyToOne
     @JoinColumn(name = "Contact_ID", nullable = false)
@@ -79,28 +79,20 @@ public class PracticeManager {
         this.contact = contact;
     }
 
-    public PracticeManager(Long id, String postManager, String workExperience, String workDirection, Contact contact, String login, String password, String firstName, String secondName, String middleName) {
+    public PracticeManager(Long id, String postManager, String workExperience, String workDirection, Contact contact, String login, String firstName, String secondName, String middleName, String role) {
         this.id = id;
         this.postManager = postManager;
         this.workExperience = workExperience;
         this.workDirection = workDirection;
         this.contact = contact;
         this.managerLogin = login;
-        this.managerPassword = password;
         this.firstName = firstName;
         this.secondName = secondName;
         this.middleName = middleName;
+        this.role = role;
     }
 
     public PracticeManager() {
-    }
-
-    public String getManagerPassword() {
-        return managerPassword;
-    }
-
-    public void setManagerPassword(String managerPassword) {
-        this.managerPassword = managerPassword;
     }
 
     public String getManagerLogin() {
@@ -133,5 +125,13 @@ public class PracticeManager {
 
     public void setMiddleName(String middleName) {
         this.middleName = middleName;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 }

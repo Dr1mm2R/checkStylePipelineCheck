@@ -1,8 +1,6 @@
 package com.example.apisearchpracticebase.Controllers;
 
-import com.example.apisearchpracticebase.Models.Contact;
-import com.example.apisearchpracticebase.Models.ResumeStudent;
-import com.example.apisearchpracticebase.Models.Student;
+import com.example.apisearchpracticebase.Models.*;
 import com.example.apisearchpracticebase.Repositories.*;
 import com.example.apisearchpracticebase.Security.JWTProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +18,8 @@ import java.util.Map;
 @RequestMapping("/authentication")
 public class AuthController {
 
+    String uniqueKey = "tokenUnique";
+
     private final JWTProvider jwtProvider;
 
     public AuthController(JWTProvider jwtProvider) {
@@ -29,16 +29,63 @@ public class AuthController {
     @Autowired
     StudentRepos studentRepos;
     @Autowired
-    CollegePracticeManagerRepos collegePracticeManagerRepos;
-    @Autowired
     PracticeManagerRepos practiceManagerRepos;
     @Autowired
     ResumeStudentRepos resumeStudentRepos;
     @Autowired
     ContactRepos contactRepos;
 
+    @Autowired
+    WorkApiLogsRepos workApiLogsRepos;
+
+    @PostMapping("/site/authentication")
+    public ResponseEntity<Map<String, Object>> authenticationUserFromSite(@RequestBody String emailValue){
+        WorkApiLogs workApiLogs = workApiLogsRepos.findById(1);
+        workApiLogs.setAllCountRequests(workApiLogs.getAllCountRequests()+1);
+
+        Map<String, Object> map = new HashMap<>();
+        if(practiceManagerRepos.findByManagerLogin(emailValue).isPresent()) {
+            map.put("object", practiceManagerRepos.findByManagerLogin(emailValue).get());
+            map.put("role", "practiceManager");
+            map.put("token", jwtProvider.createToken(practiceManagerRepos.findByManagerLogin(emailValue).get().getManagerLogin(), List.of("PRACTICEMANAGER")));
+        }
+
+        workApiLogs.setSuccessfulCountRequests(workApiLogs.getSuccessfulCountRequests()+1);
+        workApiLogsRepos.save(workApiLogs);
+        return ResponseEntity.ok(map);
+    }
+
+    @PostMapping("/site/registration")
+    public ResponseEntity<Map<String, Object>> registrationUserFromSite(@RequestBody Map<String, String> map){
+        WorkApiLogs workApiLogs = workApiLogsRepos.findById(1);
+        workApiLogs.setAllCountRequests(workApiLogs.getAllCountRequests()+1);
+
+        PracticeManager practiceManager = new PracticeManager();
+        practiceManager.setManagerLogin(map.get("email"));
+        practiceManager.setPostManager(map.get("position"));
+        practiceManager.setWorkDirection(map.get("direction"));
+        practiceManager.setWorkExperience(map.get("experience"));
+        practiceManager.setSecondName(map.get("lastName"));
+        practiceManager.setFirstName(map.get("firstName"));
+        if(map.containsKey("middleName")) practiceManager.setMiddleName(map.get("middleName"));
+        practiceManager.setRole(map.get("role"));
+        Contact emptyContact = getEmptyContact(practiceManager.getManagerLogin());
+        practiceManager.setContact(emptyContact);
+        practiceManagerRepos.save(practiceManager);
+
+        workApiLogs.setSuccessfulCountRequests(workApiLogs.getSuccessfulCountRequests()+1);
+        workApiLogsRepos.save(workApiLogs);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/student")
     public ResponseEntity<Map<String, Object>> authentication(@RequestBody Map<String, String> requestData){
+        WorkApiLogs workApiLogs = workApiLogsRepos.findById(1);
+        workApiLogs.setAllCountRequests(workApiLogs.getAllCountRequests()+1);
+
+
+        workApiLogs.setSuccessfulCountRequests(workApiLogs.getSuccessfulCountRequests()+1);
+        workApiLogsRepos.save(workApiLogs);
         String email = requestData.get("email");
         String first = "";
         String second = "";
@@ -49,7 +96,9 @@ public class AuthController {
             second = requestData.get("second");
             middle = requestData.get("middle");
         }catch (Exception e){
-
+            workApiLogs.setSuccessfulCountRequests(workApiLogs.getSuccessfulCountRequests()-1);
+            workApiLogs.setErrorCountRequests(workApiLogs.getErrorCountRequests()+1);
+            workApiLogsRepos.save(workApiLogs);
         }
 
         Student studentTemp = new Student();
@@ -59,19 +108,7 @@ public class AuthController {
             studentTemp.setLastName(second);
             studentTemp.setMiddleName(middle);
 
-            String uniqueKey = "tokenUnique";
-            Contact emptyContact = new Contact();
-            emptyContact.setAddress(uniqueKey);
-            emptyContact.setEmail(email);
-            emptyContact.setPhoneNumber("");
-            emptyContact.setTelegramData("");
-            emptyContact.setVkPageData("");
-            emptyContact.setWhatsAppData("");
-            contactRepos.save(emptyContact);
-            emptyContact = contactRepos.findByAddress(uniqueKey).get();
-            emptyContact.setAddress("");
-            contactRepos.save(emptyContact);
-
+            Contact emptyContact = getEmptyContact(email);
             ResumeStudent emptyResume = new ResumeStudent();
             emptyResume.setContact(emptyContact);
             emptyResume.setPurposeInternship("");
@@ -93,5 +130,20 @@ public class AuthController {
         map.put("token", jwtProvider.createToken(studentTemp.getStudentLogin(), List.of("STUDENT")));
 
         return ResponseEntity.ok(map);
+    }
+
+    private Contact getEmptyContact(String email){
+        Contact emptyContact = new Contact();
+        emptyContact.setAddress(uniqueKey);
+        emptyContact.setEmail(email);
+        emptyContact.setPhoneNumber("");
+        emptyContact.setTelegramData("");
+        emptyContact.setVkPageData("");
+        emptyContact.setWhatsAppData("");
+        contactRepos.save(emptyContact);
+        emptyContact = contactRepos.findByAddress(uniqueKey).get();
+        emptyContact.setAddress("");
+        contactRepos.save(emptyContact);
+        return emptyContact;
     }
 }
